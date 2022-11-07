@@ -1,0 +1,52 @@
+import pandas as pd
+import os
+import csv
+import numpy as np
+
+os.chdir('C:/Users/zanna/OneDrive/Documents/MSIS')
+
+directory= 'C:/Users/zanna/OneDrive/Documents/MSIS'
+
+#hd1=hospital data
+#hd2=personal data
+hd1 = pd.read_table('CaliforniaHospitalData.csv', sep=',')
+hd2 = pd.read_table('CaliforniaHospitalData_Personnel.txt', sep='\t')
+
+left=pd.DataFrame(hd1)
+right=pd.DataFrame(hd2)
+
+merged=pd.merge(left,right,on=['HospitalID'])
+merged
+
+#remove duplicate columns
+merged2=merged.T.drop_duplicates().T
+merged2.columns
+
+#Obtain a list of all employees who are regional representatives
+
+new_data = merged2[merged2['PositionTitle'].str.contains('(Regional Representative)')]
+new_data = merged2.iloc[new_data.index]
+new_data
+
+#All employees with the first name Emily or a last name that starts with an A or ends with n
+df2 = merged2[merged2['FirstName'].str.contains('(Emily)') | merged2['LastName'].str.contains('(^[A])') | merged2['LastName'].str.contains('([n]$)')]
+print(df2.head(10))
+
+#Obtain all personnel who work for a hospital that meets the following critera
+
+# non-profit or investor
+# the five-digit zip zode ends with 2, 4, 5, or 6
+
+df3 = merged2[merged2['TypeControl'].str.contains('(Non Profit)|(Investor)') & merged2['Zip'].str.contains('([(2)|(4)|(5)|(6)]$)')]
+df3=df3.filter(['Zip', 'TypeControl', 'LastName', 'FirstName', 'PositionTitle'])
+print(df3.head(10))
+
+
+#exclude all individuals who are safety inspection members
+df4 = merged2[merged2['TypeControl'].str.contains('(Non Profit)|(Investor)') & merged2['Zip'].str.contains('([(2)|(4)|(5)|(6)]$)') & merged2['PositionTitle'].str.contains('(?!(Safety Inspection Member))')]
+print(df4.head(10))
+
+
+#Extract all personnel who work for an academic institution
+df5 = merged2[merged2['Teaching'].str.contains('(Teaching)') & merged2['DonorType'].str.contains('(Alumni)')] 
+print(df5.head(10))
